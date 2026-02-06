@@ -5,22 +5,31 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
-
+import java.util.Date;
+@Component
 public class JwtUtil {
-    private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private static final long EXPIRATION_TIME = 86400000;
 
-    // criar -> contente nesse caso é o email
-    public static String generateToken(String content){
+    private final Key key;
+    private final long expiration = 86400000;
+
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
+    public String generateToken(String email) {
         return Jwts.builder()
-                .setSubject(content)
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
-    // extrair o usuario
-    public static String extractEmail(String token) {
+
+    public String extractEmail(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -28,14 +37,13 @@ public class JwtUtil {
                 .getBody()
                 .getSubject();
     }
-    // validar
-    public static Boolean validateToken(String token){
-        try{
+
+    public boolean validateToken(String token) {
+        try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        }catch (JwtException e){
-            return  false;
+        } catch (JwtException e) {
+            return false;
         }
     }
-
 }
