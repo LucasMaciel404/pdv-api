@@ -16,19 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
-
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
     private final UserService userService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterUserRequest request) {
-        RegisterUserResponse usuario = userService.registerUser(request);
-        return ResponseEntity.ok(usuario);
-    }
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginUserRequest request) {
@@ -45,9 +40,9 @@ public class AuthController {
             return ResponseEntity.status(401).body("Credenciais inválidas");
         }
 
-        String token = JwtUtil.generateToken(user.getEmail());
+        // chama o método do bean, não estático
+        String token = jwtUtil.generateToken(user.getEmail());
 
         return ResponseEntity.ok(new LoginUserResponse(token));
     }
-
 }

@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface OrderRepository extends JpaRepository<OrderModel, UUID> { }
+public interface OrderRepository extends JpaRepository<OrderModel, UUID> {
+    OrderModel findByTable_Id(UUID id);
+}

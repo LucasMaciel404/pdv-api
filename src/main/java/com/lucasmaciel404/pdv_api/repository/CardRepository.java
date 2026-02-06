@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface CardRepository extends JpaRepository<CardModel, UUID> { }
+public interface CardRepository extends JpaRepository<CardModel, UUID> {
+    CardModel findByUid(UUID cardId);
+}
