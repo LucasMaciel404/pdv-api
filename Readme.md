@@ -134,3 +134,4 @@ MVP Foco
 - Integração NFC → mesa → pedido
 - Adicionar produtos aos pedidos
 - Backend consistente, pronto para evoluir
+ 

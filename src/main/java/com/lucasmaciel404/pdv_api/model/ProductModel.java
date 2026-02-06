@@ -25,7 +25,7 @@ public class ProductModel {
     private String name;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal valor;
+    private BigDecimal price;
 
     private Boolean active;
     private LocalDateTime createdAt;

@@ -1,6 +1,6 @@
 package com.lucasmaciel404.pdv_api.model;
 
-import com.lucasmaciel404.pdv_api.enums.model.UserRoleEnum;
+import com.lucasmaciel404.pdv_api.dto.enums.model.UserRoleEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

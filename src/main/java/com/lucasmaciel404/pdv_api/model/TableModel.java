@@ -1,5 +1,5 @@
 package com.lucasmaciel404.pdv_api.model;
-import com.lucasmaciel404.pdv_api.enums.model.TableStatusEnum;
+import com.lucasmaciel404.pdv_api.dto.enums.model.TableStatusEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
