@@ -2,9 +2,7 @@ package com.lucasmaciel404.pdv_api.controller;
 
 import com.lucasmaciel404.pdv_api.model.UserModel;
 import com.lucasmaciel404.pdv_api.dto.request.LoginUserRequest;
-import com.lucasmaciel404.pdv_api.dto.request.RegisterUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.LoginUserResponse;
-import com.lucasmaciel404.pdv_api.dto.response.RegisterUserResponse;
 import com.lucasmaciel404.pdv_api.security.JwtUtil;
 import com.lucasmaciel404.pdv_api.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +38,6 @@ public class AuthController {
             return ResponseEntity.status(401).body("Credenciais inválidas");
         }
 
-        // chama o método do bean, não estático
         String token = jwtUtil.generateToken(user.getEmail());
 
         return ResponseEntity.ok(new LoginUserResponse(token));
