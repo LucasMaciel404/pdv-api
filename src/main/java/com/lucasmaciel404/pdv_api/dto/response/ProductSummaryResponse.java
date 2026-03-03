@@ -1,9 +1,10 @@
 package com.lucasmaciel404.pdv_api.dto.response;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record ProductSummaryResponse(
-        String id,
+        UUID id,
         String name,
-        BigDecimal price
+        BigDecimal unitPrice
 ) { }

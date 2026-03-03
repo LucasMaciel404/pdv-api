@@ -1,11 +1,15 @@
 package com.lucasmaciel404.pdv_api.controller;
 
+import com.lucasmaciel404.pdv_api.dto.request.RegisterUserRequest;
+import com.lucasmaciel404.pdv_api.dto.response.RegisterUserResponse;
+import com.lucasmaciel404.pdv_api.dto.response.UserResponse;
 import com.lucasmaciel404.pdv_api.model.UserModel;
 import com.lucasmaciel404.pdv_api.dto.request.LoginUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.LoginUserResponse;
 import com.lucasmaciel404.pdv_api.security.JwtUtil;
 import com.lucasmaciel404.pdv_api.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,11 +22,22 @@ import java.util.Optional;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-
     private final UserService userService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtUtil jwtUtil;
 
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody RegisterUserRequest request){
+        Optional<UserModel> userOpt = userService.findByEmail(request.email());
+
+        if (userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User already exists");
+        }
+
+        RegisterUserResponse response = userService.registerUser(request);
+
+        return ResponseEntity.ok("");
+    }
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginUserRequest request) {
 
@@ -39,7 +54,7 @@ public class AuthController {
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
-
-        return ResponseEntity.ok(new LoginUserResponse(token));
+        UserResponse userResponse = new UserResponse(user.getName(), user.getEmail(), user.getRole());
+        return ResponseEntity.ok(new LoginUserResponse(token, userResponse));
     }
 }

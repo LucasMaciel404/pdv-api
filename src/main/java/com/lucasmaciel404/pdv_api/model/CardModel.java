@@ -19,17 +19,21 @@ public class CardModel {
     private UUID id;
 
     @Column(unique = true, nullable = false)
-    private UUID uid;
+    private String uid;
 
     private Boolean active;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "establishment_id", nullable = false)
+    private Establishment establishment;
+
     @PrePersist
     void onCreate() {
         if (active == null) active = true;
         if (createdAt == null) createdAt = LocalDateTime.now();
-        if (uid == null) uid = UUID.randomUUID();
+        if (uid == null) uid = UUID.randomUUID().toString();
     }
 }
