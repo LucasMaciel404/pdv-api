@@ -15,20 +15,20 @@ public class TableController {
 
     private final TableService service;
 
-    @GetMapping("/by-card/{cardId}")
-    public ResponseEntity<?> findByCardId(@PathVariable UUID cardId) {
-        return ResponseEntity.ok(service.findByCardId(cardId));
-    }
-
     @GetMapping
     public ResponseEntity<?> findAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
+    @GetMapping("/by-card/{cardId}")
+    public ResponseEntity<?> findByCardId(@PathVariable UUID cardId) {
+        return ResponseEntity.ok(service.findByCardId(cardId));
+    }
+
+
     @PostMapping
-    public ResponseEntity<?>  create(@RequestParam Integer number,
-                                     @RequestParam(required = false) UUID cardId) {
-        return ResponseEntity.ok(service.create(number, cardId));
+    public ResponseEntity<?>  create(@RequestParam Integer number) {
+        return ResponseEntity.ok(service.create(number));
     }
 
     @DeleteMapping("/{id}")
