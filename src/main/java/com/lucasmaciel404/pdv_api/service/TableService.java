@@ -49,9 +49,9 @@ public class TableService {
                 .orElseThrow(() -> new EntityNotFoundException("Estabelecimento não encontrado"));
 
         TableModel table = new TableModel();
+
         table.setNumber(number);
-        table.setStatus(TableStatusEnum.OPEN); // se for enum melhor ainda
-        table.setCreatedAt(LocalDateTime.now());
+        table.setStatus(TableStatusEnum.OPEN);
         table.setEstablishment(establishment);
 
         return tableRepository.save(table);
