@@ -17,25 +17,21 @@ public class EstablishmentService {
         this.establishmentRepository = establishmentRepository;
     }
 
-    // CREATE
     public Establishment create(Establishment establishment) {
         establishment.setActive(true);
 
         return establishmentRepository.save(establishment);
     }
 
-    // FIND ALL
     public List<Establishment> findAll() {
         return establishmentRepository.findAll();
     }
 
-    // FIND BY ID
     public Establishment findById(UUID id) {
         return establishmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Establishment not found"));
     }
 
-    // UPDATE
     public Establishment update(UUID id, Establishment updatedData) {
         Establishment establishment = findById(id);
 
@@ -45,7 +41,6 @@ public class EstablishmentService {
         return establishmentRepository.save(establishment);
     }
 
-    // DELETE (soft delete recomendado)
     public void delete(UUID id) {
         Establishment establishment = findById(id);
         establishment.setActive(false);

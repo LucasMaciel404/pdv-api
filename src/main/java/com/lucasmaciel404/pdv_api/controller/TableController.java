@@ -17,25 +17,21 @@ public class TableController {
 
     private final TableService tableService;
 
-    // 🔎 Buscar por ID
     @GetMapping("/{id}")
     public ResponseEntity<TableModel> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(tableService.findById(id));
     }
 
-    // 🔎 Buscar por CardId
     @GetMapping("/card/{cardId}")
     public ResponseEntity<TableModel> findByCardId(@PathVariable UUID cardId) {
         return ResponseEntity.ok(tableService.findByCardId(cardId));
     }
 
-    // 📋 Listar todas
     @GetMapping
     public ResponseEntity<List<TableModel>> findAll() {
         return ResponseEntity.ok(tableService.findAll());
     }
 
-    // ➕ Criar mesa
     @PostMapping
     public ResponseEntity<TableModel> create(@RequestBody CreateTableRequest request) {
         TableModel table = tableService.create(
@@ -45,7 +41,6 @@ public class TableController {
         return ResponseEntity.ok(table);
     }
 
-    // 🔄 Atualizar número
     @PutMapping("/{id}")
     public ResponseEntity<TableModel> update(
             @PathVariable UUID id,
@@ -54,7 +49,6 @@ public class TableController {
         return ResponseEntity.ok(tableService.update(id, request.number()));
     }
 
-    // 🔗 Vincular cartão
     @PatchMapping("/{id}/card")
     public ResponseEntity<TableModel> attachCard(
             @PathVariable UUID id,
@@ -65,14 +59,11 @@ public class TableController {
         );
     }
 
-    // ❌ Deletar
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         tableService.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-    // 🔹 Requests DTOs internos simples
 
     public record CreateTableRequest(
             Integer number,
