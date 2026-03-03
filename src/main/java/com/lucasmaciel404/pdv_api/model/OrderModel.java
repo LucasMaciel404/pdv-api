@@ -31,6 +31,10 @@ public class OrderModel {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "establishment_id", nullable = false)
+    private Establishment establishment;
+
     @PrePersist
     private void prePersist() {
         if (status == null) status = OrderStatusEnum.OPEN;

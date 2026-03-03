@@ -10,11 +10,13 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+
 @Component
 public class JwtUtil {
 
     private final Key key;
     private final long expiration = 86400000;
+//    private final long expiration = 60000;
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());

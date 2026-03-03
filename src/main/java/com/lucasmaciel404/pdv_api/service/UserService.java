@@ -5,6 +5,8 @@ import com.lucasmaciel404.pdv_api.repository.UserRepository;
 import com.lucasmaciel404.pdv_api.dto.request.RegisterUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.RegisterUserResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
