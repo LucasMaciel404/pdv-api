@@ -17,7 +17,7 @@ public class CardService {
 
     public CardModel createCard(CardRequest card) {
         CardModel newCard = new CardModel();
-        newCard.setCardCode(card.id());
+        newCard.setCardCode(card.cardId());
         newCard.setActive(card.active());
         return cardRepository.save(newCard);
     }
