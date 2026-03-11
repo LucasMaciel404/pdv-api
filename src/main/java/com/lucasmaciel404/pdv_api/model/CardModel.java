@@ -19,7 +19,7 @@ public class CardModel {
     private UUID id;
 
     @Column(unique = true, nullable = false)
-    private String uid;
+    private String cardCode;
 
     private Boolean active;
 
@@ -34,6 +34,6 @@ public class CardModel {
     void onCreate() {
         if (active == null) active = true;
         if (createdAt == null) createdAt = LocalDateTime.now();
-        if (uid == null) uid = UUID.randomUUID().toString();
+        if (cardCode == null) cardCode = UUID.randomUUID().toString();
     }
 }
