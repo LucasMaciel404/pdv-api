@@ -4,6 +4,7 @@ import com.lucasmaciel404.pdv_api.model.ProductModel;
 import com.lucasmaciel404.pdv_api.dto.request.ProductRequest;
 import com.lucasmaciel404.pdv_api.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,13 +25,20 @@ public class ProductsController {
     }
 
     @PostMapping
-    public ProductModel createProduct(@RequestBody ProductRequest request) {
-        ProductModel product = new ProductModel();
-        product.setName(request.name());
-        product.setPrice(request.price());
+    public ResponseEntity<?> createProduct(@RequestBody ProductRequest request) {
 
-        return productService.createProduct(product);
+        try {
+            ProductModel product = new ProductModel();
+            product.setName(request.name());
+            product.setPrice(request.price());
+            product.setDescription(request.description());
+
+            return ResponseEntity.ok(productService.createProduct(product, request.establishment()));
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable UUID id) {
         productService.deleteProduct(id);

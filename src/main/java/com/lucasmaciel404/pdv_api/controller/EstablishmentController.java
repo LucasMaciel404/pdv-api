@@ -1,5 +1,6 @@
 package com.lucasmaciel404.pdv_api.controller;
 
+import com.lucasmaciel404.pdv_api.dto.request.AddUserToEstablishmentRequest;
 import com.lucasmaciel404.pdv_api.model.Establishment;
 import com.lucasmaciel404.pdv_api.service.EstablishmentService;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,9 @@ public class EstablishmentController {
         Establishment created = establishmentService.create(establishment);
         return ResponseEntity.ok(created);
     }
-    @PostMapping("/{estabilishmentId}")
-    public ResponseEntity<?> addUserToEstablishment(@PathVariable("estabilishmentId") UUID establishmentId, UUID userId ){
-        return establishmentService.setUserToEstablishment(userId, establishmentId);
+    @PostMapping("/{establishmentId}")
+    public ResponseEntity<?> addUserToEstablishment(@PathVariable UUID establishmentId,@RequestBody AddUserToEstablishmentRequest request ) {
+        return establishmentService.setUserToEstablishment(request.userId(), establishmentId, request.role());
     }
 
     @GetMapping
