@@ -4,19 +4,20 @@ import com.lucasmaciel404.pdv_api.dto.PedidoDTO;
 import com.lucasmaciel404.pdv_api.dto.enums.model.OrderStatusEnum;
 import com.lucasmaciel404.pdv_api.dto.enums.model.TableStatusEnum;
 import com.lucasmaciel404.pdv_api.dto.mapper.OrderItemMapper;
-import com.lucasmaciel404.pdv_api.dto.request.AddItemsRequest;
 import com.lucasmaciel404.pdv_api.dto.response.GetOrderByCardIdResponse;
 import com.lucasmaciel404.pdv_api.dto.response.OrderItemResponse;
-import com.lucasmaciel404.pdv_api.dto.response.ProductSummaryResponse;
 import com.lucasmaciel404.pdv_api.model.*;
 import com.lucasmaciel404.pdv_api.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,8 +29,8 @@ public class OrderService {
     private final OrderItemsRepository orderItemsRepository;
     private final ProductRepository productRepository;
 
-    public GetOrderByCardIdResponse getOrderByCardId(UUID cardId) {
-        CardModel card = cardRepository.findByUid(cardId).orElseThrow(()-> new EntityNotFoundException("Card not found"));
+    public GetOrderByCardIdResponse getOrderByCardId(String cardId) {
+        CardModel card = cardRepository.findByCardCode(cardId).orElseThrow(()-> new EntityNotFoundException("Card not found"));
         if (card == null) throw new EntityNotFoundException("Card not found");
 
         // verificar se cardid esta vinculado a uma mesa
@@ -58,10 +59,10 @@ public class OrderService {
         );
     }
 
-    public OrderModel createOrderByCardId(UUID cardId,UUID tableId) {
+    public OrderModel createOrderByCardId(String cardId,UUID tableId) {
         TableModel table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new EntityNotFoundException("Table not found"));
-        CardModel card = cardRepository.findByUid(cardId)
+        CardModel card = cardRepository.findByCardCode(cardId)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found"));
 
         // vincular cardId a tabela
@@ -77,8 +78,8 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public OrderModel addItemsToOrder(UUID cardId, List<PedidoDTO> pedidos) {
-        CardModel card =  cardRepository.findByUid(cardId)
+    public OrderModel addItemsToOrder(String cardId, List<PedidoDTO> pedidos) {
+        CardModel card =  cardRepository.findByCardCode(cardId)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found"));
 
         // verificar se cardid esta vinculado a uma mesa
@@ -118,6 +119,19 @@ public class OrderService {
         // salvar a lista de orderItems
         orderItemsRepository.saveAll(orderItems);
         return order;
+    }
+
+    public ResponseEntity<?> closeByCardCode(String cardCode) {
+        try{
+            Optional<CardModel> card = cardRepository.findByCardCode(cardCode);
+            TableModel table = tableRepository.findByCard_Id(card.get().getId());
+            OrderModel order = orderRepository.findByTable_IdAndStatus(table.getId(), OrderStatusEnum.OPEN);
+            order.setStatus(OrderStatusEnum.CLOSED);
+            orderRepository.save(order);
+            return ResponseEntity.ok().build();
+        }catch (EntityNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     public void deleteItemById(UUID itemId) {

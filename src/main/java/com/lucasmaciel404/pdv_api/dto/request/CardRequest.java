@@ -1,5 +1,7 @@
 package com.lucasmaciel404.pdv_api.dto.request;
 
-public record CardRequest( String cardId, boolean active) {
+import java.util.UUID;
+
+public record CardRequest(String cardId, boolean active, UUID estabilishment) {
 
 }

@@ -34,6 +34,5 @@ public class CardModel {
     void onCreate() {
         if (active == null) active = true;
         if (createdAt == null) createdAt = LocalDateTime.now();
-        if (cardCode == null) cardCode = UUID.randomUUID().toString();
     }
 }

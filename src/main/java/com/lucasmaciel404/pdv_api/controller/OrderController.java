@@ -8,6 +8,7 @@ import com.lucasmaciel404.pdv_api.service.OrderService;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,32 +21,37 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @GetMapping("/by-card/{cardId}")
-    public ResponseEntity<?> getOrderByCardUid(@PathVariable UUID cardId) {
+    @GetMapping("/by-card/{cardCode}")
+    public ResponseEntity<?> getOrderByCardCode(@PathVariable String cardCode) {
         try {
-            GetOrderByCardIdResponse response = orderService.getOrderByCardId(cardId);
+            GetOrderByCardIdResponse response = orderService.getOrderByCardId(cardCode);
             return ResponseEntity.ok(response);
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-    @PostMapping("/by-card/{cardId}")
-    public ResponseEntity<?> createOrder(@PathVariable UUID cardId, @RequestBody CreateOrderRequest request) {
+    @PostMapping("/by-card/{cardCode}")
+    public ResponseEntity<?> createOrder(@PathVariable String cardCode, @RequestBody CreateOrderRequest request) {
         try{
-            OrderModel response = orderService.createOrderByCardId(cardId, request.tableId());
+            OrderModel response = orderService.createOrderByCardId(cardCode, request.tableId());
             return ResponseEntity.ok(response);
         }catch (Exception e){
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     @PostMapping("/items/{cardId}")
-    public ResponseEntity<?> addItems(@PathVariable UUID cardId, @RequestBody AddItemsRequest request) {
+    public ResponseEntity<?> addItems(@PathVariable String cardId, @RequestBody AddItemsRequest request) {
         try{
             OrderModel response = orderService.addItemsToOrder(cardId, request.items());
             return ResponseEntity.ok(response);
         } catch ( Exception e){
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+    @PostMapping("/close/{cardCode}")
+    public ResponseEntity<?> closeOrder(@PathVariable String cardCode) {
+        orderService.closeByCardCode(cardCode);
+        return ResponseEntity.ok().build();
     }
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<?> deleteItems(@PathVariable UUID itemId) {
