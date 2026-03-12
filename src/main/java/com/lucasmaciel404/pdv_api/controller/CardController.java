@@ -4,14 +4,12 @@ import com.lucasmaciel404.pdv_api.dto.request.CardRequest;
 import com.lucasmaciel404.pdv_api.model.CardModel;
 import com.lucasmaciel404.pdv_api.service.CardService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.function.EntityResponse;
 
 @RestController
-@RequestMapping("/card")
 @RequiredArgsConstructor
+@RequestMapping("/card")
 public class CardController {
     private final CardService cardService;
 

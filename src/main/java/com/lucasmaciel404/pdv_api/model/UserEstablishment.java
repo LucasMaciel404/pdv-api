@@ -2,7 +2,9 @@ package com.lucasmaciel404.pdv_api.model;
 
 import com.lucasmaciel404.pdv_api.dto.enums.model.UserRoleEnum;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.util.UUID;
 @Entity
@@ -12,6 +14,8 @@ import java.util.UUID;
                 @UniqueConstraint(columnNames = {"user_id", "establishment_id"})
         }
 )
+@Getter
+@Setter
 public class UserEstablishment {
 
     @Id

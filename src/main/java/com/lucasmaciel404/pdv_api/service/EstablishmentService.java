@@ -1,21 +1,27 @@
 package com.lucasmaciel404.pdv_api.service;
 
 import com.lucasmaciel404.pdv_api.model.Establishment;
+import com.lucasmaciel404.pdv_api.model.UserEstablishment;
+import com.lucasmaciel404.pdv_api.model.UserModel;
 import com.lucasmaciel404.pdv_api.repository.EstablishmentRepository;
+import com.lucasmaciel404.pdv_api.repository.UserEstablishmentRepository;
+import com.lucasmaciel404.pdv_api.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class EstablishmentService {
 
     private final EstablishmentRepository establishmentRepository;
-
-    public EstablishmentService(EstablishmentRepository establishmentRepository) {
-        this.establishmentRepository = establishmentRepository;
-    }
+    private final UserEstablishmentRepository userEstablishmentRepository;
+    private final UserRepository userRepository;
 
     public Establishment create(Establishment establishment) {
         establishment.setActive(true);
@@ -45,5 +51,16 @@ public class EstablishmentService {
         Establishment establishment = findById(id);
         establishment.setActive(false);
         establishmentRepository.save(establishment);
+    }
+
+    public ResponseEntity<?> setUserToEstablishment(UUID userId, UUID establishmentId) {
+        UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        Establishment establishment = establishmentRepository.findById(establishmentId).orElseThrow(() -> new RuntimeException("Establishment not found"));
+
+        UserEstablishment userEstablishment = new UserEstablishment();
+        userEstablishment.setUser(user);
+        userEstablishment.setEstablishment(establishment);
+        userEstablishmentRepository.save(userEstablishment);
+        return ResponseEntity.ok(userEstablishment);
     }
 }

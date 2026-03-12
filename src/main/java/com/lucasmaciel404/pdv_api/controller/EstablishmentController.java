@@ -21,6 +21,10 @@ public class EstablishmentController {
         Establishment created = establishmentService.create(establishment);
         return ResponseEntity.ok(created);
     }
+    @PostMapping("/{estabilishmentId}")
+    public ResponseEntity<?> addUserToEstablishment(@PathVariable("estabilishmentId") UUID establishmentId, UUID userId ){
+        return establishmentService.setUserToEstablishment(userId, establishmentId);
+    }
 
     @GetMapping
     public ResponseEntity<List<Establishment>> findAll() {
