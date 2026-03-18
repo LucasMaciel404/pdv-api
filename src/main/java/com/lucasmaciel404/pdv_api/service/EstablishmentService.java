@@ -65,4 +65,10 @@ public class EstablishmentService {
         userEstablishmentRepository.save(userEstablishment);
         return ResponseEntity.ok(userEstablishment);
     }
+
+    public Establishment getEstablishWithUserId(UUID userid) {
+        UserEstablishment userEstablishment = userEstablishmentRepository.findByUserId(userid).orElseThrow(() -> new RuntimeException("User not found"));
+        Establishment establishment = findById(userEstablishment.getEstablishment().getId());
+        return establishment;
+    }
 }

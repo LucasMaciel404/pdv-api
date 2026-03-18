@@ -33,7 +33,7 @@ public class OrderController {
     @PostMapping("/by-card/{cardCode}")
     public ResponseEntity<?> createOrder(@PathVariable String cardCode, @RequestBody CreateOrderRequest request) {
         try{
-            OrderModel response = orderService.createOrderByCardId(cardCode, request.tableId());
+            OrderModel response = orderService.createOrderByCardId(cardCode, request.table());
             return ResponseEntity.ok(response);
         }catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -45,9 +45,10 @@ public class OrderController {
             OrderModel response = orderService.addItemsToOrder(cardId, request.items());
             return ResponseEntity.ok(response);
         } catch ( Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
     @PostMapping("/close/{cardCode}")
     public ResponseEntity<?> closeOrder(@PathVariable String cardCode) {
         orderService.closeByCardCode(cardCode);

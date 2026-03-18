@@ -67,10 +67,11 @@ public class TableService {
 
     public TableModel attachCard(UUID tableId, UUID cardId) {
 
-        TableModel table = findById(tableId);
+        TableModel table = tableRepository.findById(tableId)
+                .orElseThrow(() -> new EntityNotFoundException("Table not found"));
 
         CardModel card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new EntityNotFoundException("Cartão não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Card not found"));
 
         table.setCard(card);
 
