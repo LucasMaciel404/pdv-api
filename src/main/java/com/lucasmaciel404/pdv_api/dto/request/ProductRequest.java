@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record ProductRequest(
 
@@ -13,6 +14,11 @@ public record ProductRequest(
 
         @NotNull
         @Positive
-        BigDecimal price
+        BigDecimal price,
+
+        @NotNull
+        UUID establishment,
+
+        String description
 
 ) {}

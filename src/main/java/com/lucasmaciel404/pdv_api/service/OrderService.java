@@ -74,6 +74,7 @@ public class OrderService {
         OrderModel order = new OrderModel();
         order.setStatus(OrderStatusEnum.OPEN);
         order.setTable(table);
+        order.setEstablishment(table.getEstablishment());
 
         return orderRepository.save(order);
     }
@@ -92,11 +93,15 @@ public class OrderService {
 
         // pegando lista de produtos
         List<ProductModel> products = pedidos.stream().map((item)->{
-            return productRepository.findById(item.productId()) .orElseThrow(() ->
+            ProductModel oneProduct = productRepository.findById(item.productId()) .orElseThrow(() ->
                     new EntityNotFoundException(
                             String.format("Product not found with id %s", item.productId())
                     )
             );
+            if (oneProduct.getPrice().compareTo(item.price()) < 0) {
+                oneProduct.setPrice(item.price());
+            }
+            return oneProduct;
         }).toList();
 
         // criando order Items

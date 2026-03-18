@@ -1,6 +1,8 @@
 package com.lucasmaciel404.pdv_api.controller;
 
+import com.lucasmaciel404.pdv_api.dto.request.AddUserToEstablishmentRequest;
 import com.lucasmaciel404.pdv_api.model.Establishment;
+import com.lucasmaciel404.pdv_api.model.UserEstablishment;
 import com.lucasmaciel404.pdv_api.service.EstablishmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +23,9 @@ public class EstablishmentController {
         Establishment created = establishmentService.create(establishment);
         return ResponseEntity.ok(created);
     }
-    @PostMapping("/{estabilishmentId}")
-    public ResponseEntity<?> addUserToEstablishment(@PathVariable("estabilishmentId") UUID establishmentId, UUID userId ){
-        return establishmentService.setUserToEstablishment(userId, establishmentId);
+    @PostMapping("/{establishmentId}")
+    public ResponseEntity<?> addUserToEstablishment(@PathVariable UUID establishmentId,@RequestBody AddUserToEstablishmentRequest request ) {
+        return establishmentService.setUserToEstablishment(request.userId(), establishmentId, request.role());
     }
 
     @GetMapping
@@ -34,6 +36,10 @@ public class EstablishmentController {
     @GetMapping("/{id}")
     public ResponseEntity<Establishment> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(establishmentService.findById(id));
+    }
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Establishment> findByUser(@PathVariable UUID userId) {
+        return ResponseEntity.ok(establishmentService.getEstablishWithUserId(userId));
     }
 
     @PutMapping("/{id}")

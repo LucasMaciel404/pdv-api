@@ -1,4 +1,5 @@
 package com.lucasmaciel404.pdv_api.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lucasmaciel404.pdv_api.dto.enums.model.TableStatusEnum;
 import jakarta.persistence.*;
 import lombok.Getter;

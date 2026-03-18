@@ -1,6 +1,7 @@
 package com.lucasmaciel404.pdv_api.controller;
 
 import com.lucasmaciel404.pdv_api.dto.enums.model.TableStatusEnum;
+import com.lucasmaciel404.pdv_api.dto.request.CreateTableRequest;
 import com.lucasmaciel404.pdv_api.model.TableModel;
 import com.lucasmaciel404.pdv_api.service.TableService;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class TableController {
     public ResponseEntity<TableModel> create(@RequestBody CreateTableRequest request) {
         TableModel table = tableService.create(
                 request.number(),
-                request.establishmentId()
+                request.establishment()
         );
         return ResponseEntity.ok(table);
     }
@@ -63,12 +64,6 @@ public class TableController {
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         tableService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    public record CreateTableRequest(
-            Integer number,
-            UUID establishmentId
-    ) {
     }
 
     public record UpdateTableRequest(

@@ -1,5 +1,6 @@
 package com.lucasmaciel404.pdv_api.service;
 
+import com.lucasmaciel404.pdv_api.dto.enums.model.UserRoleEnum;
 import com.lucasmaciel404.pdv_api.model.Establishment;
 import com.lucasmaciel404.pdv_api.model.UserEstablishment;
 import com.lucasmaciel404.pdv_api.model.UserModel;
@@ -53,14 +54,21 @@ public class EstablishmentService {
         establishmentRepository.save(establishment);
     }
 
-    public ResponseEntity<?> setUserToEstablishment(UUID userId, UUID establishmentId) {
+    public ResponseEntity<?> setUserToEstablishment(UUID userId, UUID establishmentId, String role) {
         UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         Establishment establishment = establishmentRepository.findById(establishmentId).orElseThrow(() -> new RuntimeException("Establishment not found"));
 
         UserEstablishment userEstablishment = new UserEstablishment();
         userEstablishment.setUser(user);
         userEstablishment.setEstablishment(establishment);
+        userEstablishment.setRole(UserRoleEnum.valueOf(role));
         userEstablishmentRepository.save(userEstablishment);
         return ResponseEntity.ok(userEstablishment);
+    }
+
+    public Establishment getEstablishWithUserId(UUID userid) {
+        UserEstablishment userEstablishment = userEstablishmentRepository.findByUserId(userid).orElseThrow(() -> new RuntimeException("User not found"));
+        Establishment establishment = findById(userEstablishment.getEstablishment().getId());
+        return establishment;
     }
 }

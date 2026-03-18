@@ -1,5 +1,6 @@
 package com.lucasmaciel404.pdv_api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lucasmaciel404.pdv_api.dto.enums.model.UserRoleEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class UserModel {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -40,6 +42,7 @@ public class UserModel {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<UserEstablishment> establishments;
 
     @PrePersist
