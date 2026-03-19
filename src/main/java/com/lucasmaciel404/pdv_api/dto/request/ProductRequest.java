@@ -19,6 +19,8 @@ public record ProductRequest(
         @NotNull
         UUID establishment,
 
-        String description
+        String description,
+
+        String category
 
 ) {}

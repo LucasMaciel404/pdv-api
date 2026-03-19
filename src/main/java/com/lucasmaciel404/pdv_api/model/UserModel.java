@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
 public class UserModel {
 
     @Id
@@ -44,6 +44,11 @@ public class UserModel {
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<UserEstablishment> establishments;
+
+    @Column(name = "stripe_customer_id")
+    private String stripeCustomerId;
+
+    private String subscriptionId;
 
     @PrePersist
     private void prePersist() {
