@@ -1,0 +1,63 @@
+package com.lucasmaciel404.pdv_api.controller;
+
+import com.lucasmaciel404.pdv_api.dto.request.AddUserToEstablishmentRequest;
+import com.lucasmaciel404.pdv_api.model.Establishment;
+import com.lucasmaciel404.pdv_api.model.UserEstablishment;
+import com.lucasmaciel404.pdv_api.service.EstablishmentService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/establishments")
+public class EstablishmentController {
+
+    private final EstablishmentService establishmentService;
+
+    @PostMapping
+    public ResponseEntity<Establishment> create(@RequestBody Establishment establishment, Authentication authentication) {
+        String gmail = authentication.getName();
+        Establishment created = establishmentService.create(establishment, gmail);
+        if (created != null) {
+            return ResponseEntity.ok(created);
+        }
+        return ResponseEntity.badRequest().build();
+    }
+    @PostMapping("/{establishmentId}")
+    public ResponseEntity<?> addUserToEstablishment(@PathVariable UUID establishmentId,@RequestBody AddUserToEstablishmentRequest request ) {
+        return establishmentService.setUserToEstablishment(request.userId(), establishmentId, request.role());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Establishment>> findAll() {
+        return ResponseEntity.ok(establishmentService.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Establishment> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(establishmentService.findById(id));
+    }
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Establishment> findByUser(@PathVariable UUID userId) {
+        return ResponseEntity.ok(establishmentService.getEstablishWithUserId(userId));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Establishment> update(
+            @PathVariable UUID id,
+            @RequestBody Establishment establishment
+    ) {
+        return ResponseEntity.ok(establishmentService.update(id, establishment));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        establishmentService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+}

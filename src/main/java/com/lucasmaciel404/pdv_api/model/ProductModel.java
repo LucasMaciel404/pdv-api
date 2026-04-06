@@ -1,0 +1,44 @@
+package com.lucasmaciel404.pdv_api.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "products")
+public class ProductModel {
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    @Column(nullable = false)
+    private String name;
+
+    private String description;
+
+    private String category;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
+    private Boolean active;
+    private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "establishment_id", nullable = false)
+    private Establishment establishment;
+
+    @PrePersist
+    public void onCreate() {
+        if (this.active == null) this.active = true;
+        createdAt = LocalDateTime.now();
+    }
+}
