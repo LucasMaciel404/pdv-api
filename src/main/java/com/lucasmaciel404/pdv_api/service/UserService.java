@@ -1,0 +1,63 @@
+package com.lucasmaciel404.pdv_api.service;
+
+import com.lucasmaciel404.pdv_api.model.UserModel;
+import com.lucasmaciel404.pdv_api.repository.UserRepository;
+import com.lucasmaciel404.pdv_api.dto.request.RegisterUserRequest;
+import com.lucasmaciel404.pdv_api.dto.response.RegisterUserResponse;
+import com.stripe.model.Customer;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public RegisterUserResponse registerUser(RegisterUserRequest request) {
+        String customerId = this.createCustomer(request.email(), request.name());
+
+        UserModel user = new UserModel();
+        user.setName(request.name());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setRole(request.role());
+        user.setStripeCustomerId(customerId);
+
+        UserModel savedUser = userRepository.save(user);
+
+        return new RegisterUserResponse(
+                savedUser.getId(),
+                savedUser.getName(),
+                savedUser.getEmail(),
+                savedUser.getRole(),
+                savedUser.getActive(),
+                savedUser.getCreatedAt()
+        );
+    }
+    public String createCustomer(String email, String name) {
+        try {
+            Map<String, Object> params = new HashMap<>();
+            params.put("email", email);
+            params.put("name", name);
+
+            Customer customer = Customer.create(params);
+
+            return customer.getId();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao criar customer no Stripe", e);
+        }
+    }
+
+    public Optional<UserModel> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+}
