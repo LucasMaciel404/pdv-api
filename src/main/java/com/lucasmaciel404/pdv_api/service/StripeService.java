@@ -7,6 +7,9 @@ import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class StripeService {
@@ -59,6 +62,31 @@ public class StripeService {
 
         } catch (Exception e) {
             throw new RuntimeException("Erro ao criar checkout", e);
+        }
+    }
+    public String createPortalSession(String email) {
+
+        UserModel user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        String customerId = user.getStripeCustomerId();
+
+        if (customerId == null || customerId.isEmpty()) {
+            throw new RuntimeException("Usuário sem customerId no Stripe");
+        }
+
+        try {
+            Map<String, Object> params = new HashMap<>();
+            params.put("customer", customerId);
+            params.put("return_url", "cardorder://(tabs)/ ");
+
+            com.stripe.model.billingportal.Session session =
+                    com.stripe.model.billingportal.Session.create(params);
+
+            return session.getUrl();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao criar portal", e);
         }
     }
 }
