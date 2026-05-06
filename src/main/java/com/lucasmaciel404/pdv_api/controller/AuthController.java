@@ -27,16 +27,12 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterUserRequest request){
-        Optional<UserModel> userOpt = userService.findByEmail(request.email());
-
-        if (userOpt.isPresent()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User already exists");
-        }
-
+    public ResponseEntity<RegisterUserResponse> registerUser(
+            @RequestBody RegisterUserRequest request
+    ) {
         RegisterUserResponse response = userService.registerUser(request);
 
-        return ResponseEntity.ok("");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginUserRequest request) {

@@ -22,6 +22,11 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public RegisterUserResponse registerUser(RegisterUserRequest request) {
+
+        if (userRepository.existsByEmail(request.email())) {
+            throw new RuntimeException("User already exists");
+        }
+
         String customerId = this.createCustomer(request.email(), request.name());
 
         UserModel user = new UserModel();
