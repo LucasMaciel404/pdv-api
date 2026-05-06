@@ -2,10 +2,7 @@ package com.lucasmaciel404.pdv_api.controller;
 
 import com.lucasmaciel404.pdv_api.dto.request.RegisterUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.RegisterUserResponse;
-import com.lucasmaciel404.pdv_api.dto.response.UserResponse;
-import com.lucasmaciel404.pdv_api.model.UserModel;
 import com.lucasmaciel404.pdv_api.dto.request.LoginUserRequest;
-import com.lucasmaciel404.pdv_api.dto.response.LoginUserResponse;
 import com.lucasmaciel404.pdv_api.security.JwtUtil;
 import com.lucasmaciel404.pdv_api.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -35,23 +31,11 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginUserRequest request) {
+    public ResponseEntity<ResponseEntity<?>> loginUser(
+            @RequestBody LoginUserRequest request
+    ) {
+        ResponseEntity<?> response = userService.login(request);
 
-        Optional<UserModel> userOpt = userService.findByEmail(request.email());
-
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(401).body("Credenciais inválidas");
-        }
-
-        UserModel user = userOpt.get();
-
-        if (!bCryptPasswordEncoder.matches(request.password(), user.getPassword())) {
-            return ResponseEntity.status(401).body("Credenciais inválidas");
-        }
-
-        String token = jwtUtil.generateToken(user.getEmail());
-        UserResponse userResponse = new UserResponse( user.getId(), user.getName(), user.getEmail(), user.getRole(),
-                user.getStripeCustomerId(), user.getSubscriptionId(), user.getSubscriptionActive());
-        return ResponseEntity.ok(new LoginUserResponse(token, userResponse));
+        return ResponseEntity.ok(response);
     }
 }
