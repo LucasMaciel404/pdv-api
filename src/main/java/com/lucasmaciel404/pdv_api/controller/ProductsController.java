@@ -3,6 +3,7 @@ package com.lucasmaciel404.pdv_api.controller;
 import com.lucasmaciel404.pdv_api.model.ProductModel;
 import com.lucasmaciel404.pdv_api.dto.request.ProductRequest;
 import com.lucasmaciel404.pdv_api.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,6 @@ public class ProductsController {
             return new ArrayList<>();
         }
     }
-
     @PostMapping
     public ResponseEntity<?> createProduct(@RequestBody ProductRequest request) {
 
@@ -42,6 +42,26 @@ public class ProductsController {
 
             return ResponseEntity.ok(productService.createProduct(product, request.establishment()));
         }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+    @PostMapping("/batch")
+    public ResponseEntity<?> createProducts(@RequestBody List<ProductRequest> requests) {
+
+        try {
+            List<ProductModel> products = requests.stream().map(request -> {
+                ProductModel product = new ProductModel();
+                product.setName(request.name());
+                product.setPrice(request.price());
+                product.setDescription(request.description());
+                product.setCategory(request.category());
+
+                return productService.createProduct(product, request.establishment());
+            }).toList();
+
+            return ResponseEntity.ok(products);
+
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }

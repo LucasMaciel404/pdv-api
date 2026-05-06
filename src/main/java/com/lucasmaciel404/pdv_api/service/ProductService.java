@@ -23,8 +23,8 @@ public class ProductService {
     private final UserRepository userRepository;
 
     public List<ProductModel> getAllProducts(String email) {
-        UserModel user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
-        UserEstablishment userEstablishment = userEstablishmentRepository.findByUserId(user.getId()).orElseThrow(()->new RuntimeException("user establishment not found"));
+        UserModel user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        UserEstablishment userEstablishment = userEstablishmentRepository.findByUserId(user.getId()).orElseThrow(() -> new RuntimeException("user establishment not found"));
 
         return productRepository.findByEstablishmentId(userEstablishment.getEstablishment().getId());
     }
@@ -42,7 +42,7 @@ public class ProductService {
 
     public void deleteProduct(UUID id) {
         ProductModel productModel = productRepository.findById(id).orElse(null);
-        if  (productModel != null) {
+        if (productModel != null) {
             productRepository.delete(productModel);
         }
     }

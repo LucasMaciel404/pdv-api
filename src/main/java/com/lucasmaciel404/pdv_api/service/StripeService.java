@@ -78,7 +78,7 @@ public class StripeService {
         try {
             Map<String, Object> params = new HashMap<>();
             params.put("customer", customerId);
-            params.put("return_url", "cardorder://(tabs)/ ");
+            params.put("return_url", "cardorder://(tabs)");
 
             com.stripe.model.billingportal.Session session =
                     com.stripe.model.billingportal.Session.create(params);
