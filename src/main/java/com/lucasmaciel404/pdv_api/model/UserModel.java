@@ -52,11 +52,18 @@ public class UserModel {
 
     private Boolean subscriptionActive;
 
+    @Column(name = "subscription_date")
+    private LocalDateTime subscriptionDate;
+
     @PrePersist
     private void prePersist() {
         if (active == null) active = true;
 
-        if (subscriptionActive == null) subscriptionActive = false;
+        if (subscriptionActive == null) {
+            subscriptionActive = false;
+        } else if (subscriptionActive && subscriptionDate == null) {
+            subscriptionDate = LocalDateTime.now();
+        }
         if (createdAt == null) createdAt = LocalDateTime.now();
     }
 }
