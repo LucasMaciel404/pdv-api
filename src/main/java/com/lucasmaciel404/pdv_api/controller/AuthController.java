@@ -1,5 +1,6 @@
 package com.lucasmaciel404.pdv_api.controller;
 
+import com.lucasmaciel404.pdv_api.dto.LoginResponseDTO;
 import com.lucasmaciel404.pdv_api.dto.request.RegisterUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.RegisterUserResponse;
 import com.lucasmaciel404.pdv_api.dto.request.LoginUserRequest;
@@ -23,19 +24,15 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterUserResponse> registerUser(
-            @RequestBody RegisterUserRequest request
-    ) {
+    public ResponseEntity<RegisterUserResponse> registerUser( @RequestBody RegisterUserRequest request ) {
         RegisterUserResponse response = userService.registerUser(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     @PostMapping("/login")
-    public ResponseEntity<ResponseEntity<?>> loginUser(
+    public ResponseEntity<LoginResponseDTO> loginUser(
             @RequestBody LoginUserRequest request
     ) {
-        ResponseEntity<?> response = userService.login(request);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.login(request));
     }
 }

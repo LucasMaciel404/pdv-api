@@ -1,5 +1,7 @@
 package com.lucasmaciel404.pdv_api.service;
 
+import com.lucasmaciel404.pdv_api.dto.LoginResponseDTO;
+import com.lucasmaciel404.pdv_api.dto.mapper.UserMapper;
 import com.lucasmaciel404.pdv_api.dto.request.LoginUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.LoginUserResponse;
 import com.lucasmaciel404.pdv_api.dto.response.UserResponse;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +30,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final UserMapper userMapper;
 
     public RegisterUserResponse registerUser(RegisterUserRequest request) {
 
@@ -54,35 +58,28 @@ public class UserService {
                 savedUser.getCreatedAt()
         );
     }
-    public ResponseEntity<?> login(LoginUserRequest request) {
+    public LoginResponseDTO login(LoginUserRequest request) {
 
-        Optional<UserModel> userOpt = userRepository.findByEmail(request.email());
+        UserModel user = userRepository.findByEmail(request.email())
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.UNAUTHORIZED)
+                );
 
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Credenciais inválidas");
-        }
-
-        UserModel user = userOpt.get();
-
-        if (!bCryptPasswordEncoder.matches(request.password(), user.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Credenciais inválidas");
+        if (!bCryptPasswordEncoder.matches(
+                request.password(),
+                user.getPassword()
+        )) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
 
-        UserResponse userResponse = new UserResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole(),
-                user.getStripeCustomerId(),
-                user.getSubscriptionId(),
-                user.getSubscriptionActive()
-        );
+        UserResponse userResponse = userMapper.toResponse(user);
 
-        return ResponseEntity.ok(new LoginUserResponse(token, userResponse));
+        return new LoginResponseDTO(
+                token,
+                userResponse
+        );
     }
     public String createCustomer(String email, String name) {
         try {
