@@ -1,4 +1,8 @@
 package com.lucasmaciel404.pdv_api.dto;
 
-public record LoginResponseDTO() {
-}
+import com.lucasmaciel404.pdv_api.dto.response.UserResponse;
+
+public record LoginResponseDTO(
+        String token,
+        UserResponse user
+) {}
