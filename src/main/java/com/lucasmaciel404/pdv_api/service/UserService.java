@@ -1,11 +1,15 @@
 package com.lucasmaciel404.pdv_api.service;
 
+import com.lucasmaciel404.pdv_api.dto.ForgotPasswordRequestDTO;
 import com.lucasmaciel404.pdv_api.dto.LoginResponseDTO;
+import com.lucasmaciel404.pdv_api.dto.ResetPasswordRequestDTO;
 import com.lucasmaciel404.pdv_api.dto.mapper.UserMapper;
 import com.lucasmaciel404.pdv_api.dto.request.LoginUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.LoginUserResponse;
 import com.lucasmaciel404.pdv_api.dto.response.UserResponse;
+import com.lucasmaciel404.pdv_api.model.PasswordResetTokenModel;
 import com.lucasmaciel404.pdv_api.model.UserModel;
+import com.lucasmaciel404.pdv_api.repository.PasswordResetTokenRepository;
 import com.lucasmaciel404.pdv_api.repository.UserRepository;
 import com.lucasmaciel404.pdv_api.dto.request.RegisterUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.RegisterUserResponse;
@@ -19,9 +23,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +37,8 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserMapper userMapper;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
 
     public RegisterUserResponse registerUser(RegisterUserRequest request) {
 
@@ -58,6 +66,7 @@ public class UserService {
                 savedUser.getCreatedAt()
         );
     }
+
     public LoginResponseDTO login(LoginUserRequest request) {
 
         UserModel user = userRepository.findByEmail(request.email())
@@ -81,6 +90,60 @@ public class UserService {
                 userResponse
         );
     }
+
+    public void forgotPassword(ForgotPasswordRequestDTO request) {
+
+        UserModel user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        String token = UUID.randomUUID().toString();
+
+        PasswordResetTokenModel resetToken = new PasswordResetTokenModel();
+        resetToken.setToken(token);
+        resetToken.setUser(user);
+        resetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+        resetToken.setUsed(false);
+
+        passwordResetTokenRepository.save(resetToken);
+
+        emailService.sendPasswordResetEmail(
+                user.getEmail(),
+                token
+        );
+    }
+
+    public void resetPassword(ResetPasswordRequestDTO request) {
+
+        PasswordResetTokenModel resetToken =
+                passwordResetTokenRepository.findByToken(request.token())
+                        .orElseThrow(() ->
+                                new ResponseStatusException(HttpStatus.BAD_REQUEST,"Token inválido")
+                        );
+
+        if (resetToken.isUsed()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Token já utilizado"
+            );
+        }
+
+        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Token expirado"
+            );
+        }
+
+        UserModel user = resetToken.getUser();
+
+        user.setPassword( passwordEncoder.encode(request.newPassword()) );
+
+        userRepository.save(user);
+
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+    }
+
     public String createCustomer(String email, String name) {
         try {
             Map<String, Object> params = new HashMap<>();

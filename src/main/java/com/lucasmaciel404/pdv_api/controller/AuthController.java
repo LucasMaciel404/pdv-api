@@ -1,6 +1,8 @@
 package com.lucasmaciel404.pdv_api.controller;
 
+import com.lucasmaciel404.pdv_api.dto.ForgotPasswordRequestDTO;
 import com.lucasmaciel404.pdv_api.dto.LoginResponseDTO;
+import com.lucasmaciel404.pdv_api.dto.ResetPasswordRequestDTO;
 import com.lucasmaciel404.pdv_api.dto.request.RegisterUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.RegisterUserResponse;
 import com.lucasmaciel404.pdv_api.dto.request.LoginUserRequest;
@@ -24,15 +26,28 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterUserResponse> registerUser( @RequestBody RegisterUserRequest request ) {
+    public ResponseEntity<RegisterUserResponse> registerUser(@RequestBody RegisterUserRequest request) {
         RegisterUserResponse response = userService.registerUser(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> loginUser(
-            @RequestBody LoginUserRequest request
-    ) {
+    public ResponseEntity<LoginResponseDTO> loginUser(@RequestBody LoginUserRequest request) {
         return ResponseEntity.ok(userService.login(request));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequestDTO request) {
+        userService.forgotPassword(request);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequestDTO request) {
+        userService.resetPassword(request);
+
+        return ResponseEntity.ok().build();
     }
 }
