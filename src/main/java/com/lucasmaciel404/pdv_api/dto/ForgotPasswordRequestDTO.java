@@ -1,0 +1,6 @@
+package com.lucasmaciel404.pdv_api.dto;
+
+public record ForgotPasswordRequestDTO(
+        String email
+) {
+}
