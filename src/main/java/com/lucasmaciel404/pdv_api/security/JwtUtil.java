@@ -15,11 +15,14 @@ import java.util.Date;
 public class JwtUtil {
 
     private final Key key;
-    private final long expiration = 86400000;
-//    private final long expiration = 60000;
+    private final long expiration;
 
-    public JwtUtil(@Value("${jwt.secret}") String secret) {
+    public JwtUtil(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.expiration}") long expiration
+    ) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.expiration = expiration;
     }
 
     public String generateToken(String email) {
@@ -42,7 +45,11 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+
             return true;
         } catch (JwtException e) {
             return false;
