@@ -1,6 +1,6 @@
 package com.lucasmaciel404.pdv_api.config;
 
-import com.lucasmaciel404.pdv_api.security.JwtAuthFilter;
+import com.lucasmaciel404.pdv_api.security.jwt.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -6,7 +6,7 @@ import com.lucasmaciel404.pdv_api.dto.ResetPasswordRequestDTO;
 import com.lucasmaciel404.pdv_api.dto.request.RegisterUserRequest;
 import com.lucasmaciel404.pdv_api.dto.response.RegisterUserResponse;
 import com.lucasmaciel404.pdv_api.dto.request.LoginUserRequest;
-import com.lucasmaciel404.pdv_api.security.JwtUtil;
+import com.lucasmaciel404.pdv_api.security.jwt.JwtUtil;
 import com.lucasmaciel404.pdv_api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
