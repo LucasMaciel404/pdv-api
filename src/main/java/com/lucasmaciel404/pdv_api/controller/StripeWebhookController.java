@@ -19,7 +19,7 @@ public class StripeWebhookController {
 
     private final UserRepository userRepository;
 
-    @Value("${stripe.webhook.secret}")
+    @Value("${stripe.webhook-secret}")
     private String endpointSecret;
 
     @PostMapping("/webhook")

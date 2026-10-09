@@ -5,6 +5,7 @@ import com.lucasmaciel404.pdv_api.model.Establishment;
 import com.lucasmaciel404.pdv_api.model.UserEstablishment;
 import com.lucasmaciel404.pdv_api.service.EstablishmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +24,12 @@ public class EstablishmentController {
     public ResponseEntity<Establishment> create(@RequestBody Establishment establishment, Authentication authentication) {
         String gmail = authentication.getName();
         Establishment created = establishmentService.create(establishment, gmail);
+
         if (created != null) {
             return ResponseEntity.ok(created);
         }
-        return ResponseEntity.badRequest().build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
     @PostMapping("/{establishmentId}")
     public ResponseEntity<?> addUserToEstablishment(@PathVariable UUID establishmentId,@RequestBody AddUserToEstablishmentRequest request ) {

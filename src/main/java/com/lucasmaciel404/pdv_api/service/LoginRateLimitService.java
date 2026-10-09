@@ -34,9 +34,9 @@ public class LoginRateLimitService {
 
     public LoginRateLimitService(
             StringRedisTemplate redisTemplate,
-            @Value("${security.rate-limit.login.max-attempts}")
+            @Value("${login.rate-limit.max-attempts}")
             long maxAttempts,
-            @Value("${security.rate-limit.login.window-seconds}")
+            @Value("${login.rate-limit.window-seconds}")
             long windowSeconds
     ) {
         this.redisTemplate = redisTemplate;
