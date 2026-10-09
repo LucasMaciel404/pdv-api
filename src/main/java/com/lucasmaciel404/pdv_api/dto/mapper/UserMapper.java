@@ -15,7 +15,8 @@ public class UserMapper {
                 user.getRole(),
                 user.getStripeCustomerId(),
                 user.getSubscriptionId(),
-                user.getSubscriptionActive()
+                user.getSubscriptionActive(),
+                user.getSubscriptionDate()
         );
     }
 }

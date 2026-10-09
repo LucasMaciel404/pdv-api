@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import com.stripe.model.Invoice;
 import com.stripe.model.StripeObject;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/stripe")
 @RequiredArgsConstructor
@@ -54,6 +56,7 @@ public class StripeWebhookController {
                     userRepository.findByStripeCustomerId(customerId).ifPresent(user -> {
                         user.setSubscriptionId(subscriptionId);
                         user.setSubscriptionActive(true);
+                        user.setSubscriptionDate(LocalDateTime.now());
                         userRepository.save(user);
                     });
 

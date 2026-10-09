@@ -8,12 +8,9 @@ import com.lucasmaciel404.pdv_api.repository.EstablishmentRepository;
 import com.lucasmaciel404.pdv_api.repository.UserEstablishmentRepository;
 import com.lucasmaciel404.pdv_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,9 +23,11 @@ public class EstablishmentService {
 
     public Establishment create(Establishment establishment, String gmail) {
         UserModel user = userRepository.findByEmail(gmail).orElseThrow();
-        if (user.getSubscriptionActive() != true){
+
+        if (!Boolean.TRUE.equals(user.getSubscriptionActive())) {
             return null;
         }
+
         establishment.setActive(true);
 
         return establishmentRepository.save(establishment);
@@ -54,25 +53,36 @@ public class EstablishmentService {
 
     public void delete(UUID id) {
         Establishment establishment = findById(id);
+
         establishment.setActive(false);
+
         establishmentRepository.save(establishment);
     }
 
-    public ResponseEntity<?> setUserToEstablishment(UUID userId, UUID establishmentId, String role) {
-        UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        Establishment establishment = establishmentRepository.findById(establishmentId).orElseThrow(() -> new RuntimeException("Establishment not found"));
+    public UserEstablishment setUserToEstablishment(
+            UUID userId,
+            UUID establishmentId,
+            String role
+    ) {
+        UserModel user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Establishment establishment = establishmentRepository.findById(establishmentId)
+                .orElseThrow(() -> new RuntimeException("Establishment not found"));
 
         UserEstablishment userEstablishment = new UserEstablishment();
         userEstablishment.setUser(user);
         userEstablishment.setEstablishment(establishment);
         userEstablishment.setRole(UserRoleEnum.valueOf(role));
-        userEstablishmentRepository.save(userEstablishment);
-        return ResponseEntity.ok(userEstablishment);
+
+        return userEstablishmentRepository.save(userEstablishment);
     }
 
-    public Establishment getEstablishWithUserId(UUID userid) {
-        UserEstablishment userEstablishment = userEstablishmentRepository.findByUserId(userid).orElseThrow(() -> new RuntimeException("User not found"));
-        Establishment establishment = findById(userEstablishment.getEstablishment().getId());
-        return establishment;
+    public Establishment getEstablishWithUserId(UUID userId) {
+        UserEstablishment userEstablishment = userEstablishmentRepository
+                .findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return findById(userEstablishment.getEstablishment().getId());
     }
 }

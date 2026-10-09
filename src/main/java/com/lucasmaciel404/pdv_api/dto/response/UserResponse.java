@@ -2,6 +2,7 @@ package com.lucasmaciel404.pdv_api.dto.response;
 
 import com.lucasmaciel404.pdv_api.dto.enums.model.UserRoleEnum;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record UserResponse(
@@ -11,5 +12,7 @@ public record UserResponse(
         UserRoleEnum role,
         String stripeCustomerId,
         String subscriptionId,
-        Boolean subscriptionActive) {
+        Boolean subscriptionActive,
+        LocalDateTime subscriptionDate
+) {
 }
