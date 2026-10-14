@@ -58,13 +58,16 @@ public class EstablishmentMapper {
     }
 
     public FindEstablishmentsByUserResponse toFindByUserResponse(
-            Establishment establishment
+            UserEstablishment userEstablishment
     ) {
+        Establishment establishment = userEstablishment.getEstablishment();
+
         return new FindEstablishmentsByUserResponse(
                 establishment.getId(),
                 establishment.getName(),
                 establishment.getActive(),
-                establishment.getCreatedAt()
+                establishment.getCreatedAt(),
+                userEstablishment.getRole()
         );
     }
 

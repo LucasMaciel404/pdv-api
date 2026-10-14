@@ -1,5 +1,6 @@
 package com.lucasmaciel404.pdv_api.controller;
 
+import com.lucasmaciel404.pdv_api.dto.enums.model.UserRoleEnum;
 import com.lucasmaciel404.pdv_api.dto.request.AddUserToEstablishmentRequest;
 import com.lucasmaciel404.pdv_api.dto.response.AddUserToEstablishmentResponse;
 import com.lucasmaciel404.pdv_api.dto.response.CreateEstablishmentResponse;
@@ -10,6 +11,7 @@ import com.lucasmaciel404.pdv_api.dto.response.UpdateEstablishmentResponse;
 import com.lucasmaciel404.pdv_api.dto.mapper.EstablishmentMapper;
 import com.lucasmaciel404.pdv_api.model.Establishment;
 import com.lucasmaciel404.pdv_api.model.UserEstablishment;
+import com.lucasmaciel404.pdv_api.repository.UserEstablishmentRepository;
 import com.lucasmaciel404.pdv_api.service.EstablishmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,7 @@ public class EstablishmentController {
 
     private final EstablishmentService establishmentService;
     private final EstablishmentMapper establishmentMapper;
+    private final UserEstablishmentRepository userEstablishmentRepository;
 
     @PostMapping
     public ResponseEntity<CreateEstablishmentResponse> create(
@@ -88,11 +91,11 @@ public class EstablishmentController {
     public ResponseEntity<FindEstablishmentsByUserResponse> findByUser(
             @PathVariable UUID userId
     ) {
-        Establishment establishment =
+        UserEstablishment userEstablishment =
                 establishmentService.getEstablishWithUserId(userId);
 
         return ResponseEntity.ok(
-                establishmentMapper.toFindByUserResponse(establishment)
+                establishmentMapper.toFindByUserResponse(userEstablishment)
         );
     }
 
@@ -113,5 +116,19 @@ public class EstablishmentController {
         establishmentService.delete(id);
 
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/establishment/{establishmentId}/user/{userId}/waiter")
+    public ResponseEntity<Boolean> hasWaiterRole(
+            @PathVariable UUID establishmentId,
+            @PathVariable UUID userId
+    ) {
+        boolean accepted = userEstablishmentRepository
+                .existsByUser_IdAndEstablishment_IdAndRole(
+                        userId,
+                        establishmentId,
+                        UserRoleEnum.WAITER
+                );
+
+        return ResponseEntity.ok(accepted);
     }
 }

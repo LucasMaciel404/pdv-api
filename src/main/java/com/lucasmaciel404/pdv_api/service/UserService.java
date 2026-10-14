@@ -1,5 +1,6 @@
 package com.lucasmaciel404.pdv_api.service;
-
+import com.lucasmaciel404.pdv_api.dto.response.UserSummaryResponse;
+import java.util.List;
 import com.lucasmaciel404.pdv_api.dto.ForgotPasswordRequestDTO;
 import com.lucasmaciel404.pdv_api.dto.LoginResponseDTO;
 import com.lucasmaciel404.pdv_api.dto.ResetPasswordRequestDTO;
@@ -159,5 +160,16 @@ public class UserService {
 
     public Optional<UserModel> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public List<UserSummaryResponse> findByIds(List<UUID> ids) {
+        return userRepository.findAllById(ids)
+                .stream()
+                .map(user -> new UserSummaryResponse(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail()
+                ))
+                .toList();
     }
 }
