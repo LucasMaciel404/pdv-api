@@ -86,4 +86,8 @@ public class TableService {
 
         tableRepository.deleteById(tableId);
     }
+
+    public List<TableModel> findByEstablishmentId(UUID establishmentId) {
+        return tableRepository.findByEstablishmentId(establishmentId);
+    }
 }

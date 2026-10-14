@@ -75,4 +75,13 @@ public class TableController {
             UUID cardId
     ) {
     }
+
+    @GetMapping("/establishment/{establishmentId}")
+    public ResponseEntity<List<TableModel>> findByEstablishmentId(
+            @PathVariable UUID establishmentId
+    ) {
+        return ResponseEntity.ok(
+                tableService.findByEstablishmentId(establishmentId)
+        );
+    }
 }
