@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.UUID;
 
 public record AddItemsRequest(
-        List<PedidoDTO>  items
-) {
-}
+        String cardCode,
+        UUID tableId,
+        List<PedidoDTO> items
+) {}
+
