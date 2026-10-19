@@ -1,7 +1,9 @@
+
 package com.lucasmaciel404.pdv_api.controller;
 
-import com.lucasmaciel404.pdv_api.model.ProductModel;
+import com.lucasmaciel404.pdv_api.dto.mapper.ProductMapper;
 import com.lucasmaciel404.pdv_api.dto.request.ProductRequest;
+import com.lucasmaciel404.pdv_api.dto.response.ProductResponse;
 import com.lucasmaciel404.pdv_api.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,10 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 
 @RestController
 @RequestMapping("/products")
@@ -21,54 +21,74 @@ import java.util.UUID;
 public class ProductsController {
 
     private final ProductService productService;
+    private final ProductMapper productMapper;
 
     @GetMapping
-    public List<ProductModel> getAllProducts(Authentication authentication) {
-        try {
-            return productService.getAllProducts( authentication.getName() );
-        }catch (Exception e){
-            return new ArrayList<>();
-        }
+    public List<ProductResponse> getAllProducts(
+            Authentication authentication
+    ) {
+        return productService.getAllProducts(authentication.getName())
+                .stream()
+                .map(productMapper::toResponse)
+                .toList();
     }
+
+    @GetMapping("/{id}")
+    public ProductResponse getProductById(
+            @PathVariable UUID id,
+            Authentication authentication
+    ) {
+        return productMapper.toResponse(
+                productService.getProductById(id, authentication.getName())
+        );
+    }
+
     @PostMapping
-    public ResponseEntity<?> createProduct(@RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> createProduct(
+            @Valid @RequestBody ProductRequest request,
+            Authentication authentication
+    ) {
+        ProductResponse response = productMapper.toResponse(
+                productService.createProduct(request, authentication.getName())
+        );
 
-        try {
-            ProductModel product = new ProductModel();
-            product.setName(request.name());
-            product.setPrice(request.price());
-            product.setDescription(request.description());
-            product.setCategory(request.category());
-
-            return ResponseEntity.ok(productService.createProduct(product, request.establishment()));
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
     @PostMapping("/batch")
-    public ResponseEntity<?> createProducts(@RequestBody List<ProductRequest> requests) {
+    public ResponseEntity<List<ProductResponse>> createProducts(
+            @RequestBody List<@Valid ProductRequest> requests,
+            Authentication authentication
+    ) {
+        List<ProductResponse> responses = productService.createProducts(
+                        requests, authentication.getName()
+                )
+                .stream()
+                .map(productMapper::toResponse)
+                .toList();
 
-        try {
-            List<ProductModel> products = requests.stream().map(request -> {
-                ProductModel product = new ProductModel();
-                product.setName(request.name());
-                product.setPrice(request.price());
-                product.setDescription(request.description());
-                product.setCategory(request.category());
+        return ResponseEntity.status(HttpStatus.CREATED).body(responses);
+    }
 
-                return productService.createProduct(product, request.establishment());
-            }).toList();
-
-            return ResponseEntity.ok(products);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+    @PutMapping("/{id}")
+    public ProductResponse updateProduct(
+            @PathVariable UUID id,
+            @Valid @RequestBody ProductRequest request,
+            Authentication authentication
+    ) {
+        return productMapper.toResponse(
+                productService.updateProduct(
+                        id, request, authentication.getName()
+                )
+        );
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable UUID id) {
-        productService.deleteProduct(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteProduct(
+            @PathVariable UUID id,
+            Authentication authentication
+    ) {
+        productService.deleteProduct(id, authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 }
