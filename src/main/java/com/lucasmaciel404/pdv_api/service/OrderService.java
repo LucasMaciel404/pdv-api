@@ -22,6 +22,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
+
+import java.util.Optional;
 import java.util.UUID;
 
 import java.math.BigDecimal;
@@ -110,13 +112,25 @@ public class OrderService {
             UUID tableId,
             List<PedidoDTO> pedidos
     ) {
+        if (cardCode == null || cardCode.isBlank()) {
+            throw new IllegalArgumentException("Card code is required.");
+        }
+
+        if (tableId == null) {
+            throw new IllegalArgumentException("Table ID is required.");
+        }
+
+        if (pedidos == null || pedidos.isEmpty()) {
+            throw new IllegalArgumentException("Order must contain at least one item.");
+        }
+
         CardModel card = cardRepository.findByCardCode(cardCode)
                 .orElseThrow(() ->
-                        new EntityNotFoundException("Card not found"));
+                        new EntityNotFoundException("Card not found."));
 
         TableModel table = tableRepository.findById(tableId)
                 .orElseThrow(() ->
-                        new EntityNotFoundException("Table not found"));
+                        new EntityNotFoundException("Table not found."));
 
         // Verifica se o cartão já está vinculado a outra mesa
         TableModel linkedTable = tableRepository.findByCard_Id(card.getId());
@@ -138,6 +152,7 @@ public class OrderService {
         // Vincula o cartão caso a mesa ainda não tenha um
         if (table.getCard() == null) {
             table.setCard(card);
+            table.setStatus(TableStatusEnum.CLOSED);
             tableRepository.save(table);
         }
 
@@ -158,27 +173,56 @@ public class OrderService {
 
         final OrderModel currentOrder = order;
 
-        // Busca os produtos e adiciona os itens ao pedido
         List<OrderItemsModel> orderItems = pedidos.stream()
                 .map(pedido -> {
+                    if (pedido == null) {
+                        throw new IllegalArgumentException(
+                                "Order item cannot be null."
+                        );
+                    }
+
+                    if (pedido.productId() == null) {
+                        throw new IllegalArgumentException(
+                                "Product ID is required."
+                        );
+                    }
+
+                    if (pedido.quantity() == null || pedido.quantity() <= 0) {
+                        throw new IllegalArgumentException(
+                                "Product quantity must be greater than zero."
+                        );
+                    }
+
                     ProductModel product = productRepository
                             .findById(pedido.productId())
                             .orElseThrow(() ->
                                     new EntityNotFoundException(
                                             "Product not found with id "
                                                     + pedido.productId()
-                                    ));
+                                    )
+                            );
+
+                    Optional<OrderItemsModel> existingItem =
+                            orderItemsRepository.findByOrderIdAndProductId(
+                                    currentOrder.getId(),
+                                    product.getId()
+                            );
+
+                    if (existingItem.isPresent()) {
+                        OrderItemsModel item = existingItem.get();
+
+                        item.setQuantity(
+                                item.getQuantity() + pedido.quantity()
+                        );
+
+                        return item;
+                    }
 
                     OrderItemsModel orderItem = new OrderItemsModel();
                     orderItem.setProduct(product);
                     orderItem.setOrder(currentOrder);
                     orderItem.setQuantity(pedido.quantity());
-
-                    orderItem.setUnitPrice(
-                            product.getPrice().multiply(
-                                    BigDecimal.valueOf(pedido.quantity())
-                            )
-                    );
+                    orderItem.setUnitPrice(product.getPrice());
 
                     return orderItem;
                 })
@@ -189,26 +233,39 @@ public class OrderService {
         return order;
     }
 
-    public void closeByCardCode(String cardCode) {
-        CardModel card = cardRepository.findByCardCode(cardCode)
+    @Transactional
+    public void closeByOrderId(UUID orderId) {
+        System.out.println(" AAAAAAAAAAAAAAAAAAAAAA:>>>>> "+orderId);
+        OrderModel order = orderRepository.findById(orderId)
                 .orElseThrow(() ->
-                        new EntityNotFoundException("Card not found"));
+                        new EntityNotFoundException(
+                                "Order not found: " + orderId
+                        )
+                );
 
-        TableModel table = tableRepository.findByCard_Id(card.getId());
 
-        if (table == null) {
-            throw new EntityNotFoundException("Card not linked to any table.");
+        if (order.getStatus() != OrderStatusEnum.OPEN) {
+            throw new IllegalStateException(
+                    "Order is not open: " + orderId
+            );
         }
 
-        OrderModel order = orderRepository.findByTable_IdAndStatus(
-                table.getId(),
-                OrderStatusEnum.OPEN
-        );
+        TableModel table = tableRepository.findById(order.getTable().getId())
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Table not found: " + order.getTable().getId()
+                        )
+                );
 
-        if (order == null) {
-            throw new EntityNotFoundException("Order not linked to any table.");
-        }
+        // Remove o cartão NFC associado à mesa
+        table.setCard(null);
 
+        // Libera a mesa
+        table.setStatus(TableStatusEnum.OPEN);
+
+        tableRepository.save(table);
+
+        // Fecha o pedido
         order.setStatus(OrderStatusEnum.CLOSED);
         orderRepository.save(order);
     }

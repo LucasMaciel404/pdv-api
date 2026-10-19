@@ -57,12 +57,11 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/close/{cardCode}")
+    @PostMapping("/close/{orderId}")
     public ResponseEntity<Void> closeOrder(
-            @PathVariable String cardCode
+            @PathVariable UUID orderId
     ) {
-        orderService.closeByCardCode(cardCode);
-
+        orderService.closeByOrderId(orderId);
         return ResponseEntity.noContent().build();
     }
 
