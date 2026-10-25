@@ -1,11 +1,17 @@
 package com.lucasmaciel404.pdv_api.controller;
 
-import com.lucasmaciel404.pdv_api.dto.enums.model.TableStatusEnum;
+import com.lucasmaciel404.pdv_api.dto.mapper.TableMapper;
+import com.lucasmaciel404.pdv_api.dto.request.AttachCardRequest;
 import com.lucasmaciel404.pdv_api.dto.request.CreateTableRequest;
+import com.lucasmaciel404.pdv_api.dto.request.UpdateTableRequest;
+import com.lucasmaciel404.pdv_api.dto.response.TableResponse;
 import com.lucasmaciel404.pdv_api.model.TableModel;
 import com.lucasmaciel404.pdv_api.service.TableService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,71 +23,104 @@ import java.util.UUID;
 public class TableController {
 
     private final TableService tableService;
+    private final TableMapper tableMapper;
 
     @GetMapping("/{id}")
-    public ResponseEntity<TableModel> findById(@PathVariable UUID id) {
-        return ResponseEntity.ok(tableService.findById(id));
+    public ResponseEntity<TableResponse> findById(
+            @PathVariable UUID id,
+            Authentication authentication
+    ) {
+        TableModel table = tableService.findById(
+                id,
+                authentication.getName()
+        );
+
+        return ResponseEntity.ok(tableMapper.toResponse(table));
     }
 
     @GetMapping("/card/{cardId}")
-    public ResponseEntity<TableModel> findByCardId(@PathVariable UUID cardId) {
-        return ResponseEntity.ok(tableService.findByCardId(cardId));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<TableModel>> findAll() {
-        return ResponseEntity.ok(tableService.findAll());
-    }
-
-    @PostMapping
-    public ResponseEntity<TableModel> create(@RequestBody CreateTableRequest request) {
-        TableModel table = tableService.create(
-                request.number(),
-                request.establishment()
+    public ResponseEntity<TableResponse> findByCardId(
+            @PathVariable UUID cardId,
+            Authentication authentication
+    ) {
+        TableModel table = tableService.findByCardId(
+                cardId,
+                authentication.getName()
         );
-        return ResponseEntity.ok(table);
-    }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<TableModel> update(
-            @PathVariable UUID id,
-            @RequestBody UpdateTableRequest request
-    ) {
-        return ResponseEntity.ok(tableService.update(id, request.number()));
-    }
-
-    @PatchMapping("/{id}/card")
-    public ResponseEntity<TableModel> attachCard(
-            @PathVariable UUID id,
-            @RequestBody AttachCardRequest request
-    ) {
-        return ResponseEntity.ok(
-                tableService.attachCard(id, request.cardId())
-        );
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        tableService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    public record UpdateTableRequest(
-            Integer number
-    ) {
-    }
-
-    public record AttachCardRequest(
-            UUID cardId
-    ) {
+        return ResponseEntity.ok(tableMapper.toResponse(table));
     }
 
     @GetMapping("/establishment/{establishmentId}")
-    public ResponseEntity<List<TableModel>> findByEstablishmentId(
-            @PathVariable UUID establishmentId
+    public ResponseEntity<List<TableResponse>> findByEstablishmentId(
+            @PathVariable UUID establishmentId,
+            Authentication authentication
     ) {
-        return ResponseEntity.ok(
-                tableService.findByEstablishmentId(establishmentId)
+        List<TableResponse> response = tableService
+                .findByEstablishmentId(
+                        establishmentId,
+                        authentication.getName()
+                )
+                .stream()
+                .map(tableMapper::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<TableResponse> create(
+            @Valid @RequestBody CreateTableRequest request,
+            Authentication authentication
+    ) {
+        TableModel table = tableService.create(
+                request.number(),
+                request.establishment(),
+                authentication.getName()
         );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(tableMapper.toResponse(table));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TableResponse> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateTableRequest request,
+            Authentication authentication
+    ) {
+        TableModel table = tableService.update(
+                id,
+                request.number(),
+                authentication.getName()
+        );
+
+        return ResponseEntity.ok(tableMapper.toResponse(table));
+    }
+
+    @PatchMapping("/{id}/card")
+    public ResponseEntity<TableResponse> attachCard(
+            @PathVariable UUID id,
+            @Valid @RequestBody AttachCardRequest request,
+            Authentication authentication
+    ) {
+        TableModel table = tableService.attachCard(
+                id,
+                request.cardId(),
+                authentication.getName()
+        );
+
+        return ResponseEntity.ok(tableMapper.toResponse(table));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID id,
+            Authentication authentication
+    ) {
+        tableService.delete(id, authentication.getName());
+
+        return ResponseEntity.noContent().build();
     }
 }

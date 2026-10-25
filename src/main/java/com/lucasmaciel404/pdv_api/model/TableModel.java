@@ -1,4 +1,5 @@
 package com.lucasmaciel404.pdv_api.model;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lucasmaciel404.pdv_api.dto.enums.model.TableStatusEnum;
 import jakarta.persistence.*;
@@ -13,14 +14,22 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name="tables")
+@Table(
+        name = "tables",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_table_number_establishment",
+                        columnNames = {"number", "establishment_id"}
+                )
+        }
+)
 public class TableModel {
 
     @Id
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private Integer number;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -38,6 +47,12 @@ public class TableModel {
     @JoinColumn(name = "establishment_id", nullable = false)
     private Establishment establishment;
 
+    @Column(nullable = false)
+    private Boolean active = true;
+
+    public Boolean getActive() {
+        return active;
+    }
     @PrePersist
     private void prePersist() {
         if (status == null) status = TableStatusEnum.CLOSED;

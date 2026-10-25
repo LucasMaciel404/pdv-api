@@ -7,12 +7,35 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface TableRepository extends JpaRepository<TableModel, UUID> {
-    TableModel findByCard_Id(UUID uuid);
+public interface TableRepository
+        extends JpaRepository<TableModel, UUID> {
 
-    Optional<TableModel> findByCardId(UUID cardId);
+    Optional<TableModel> findByCard_Id(UUID cardId);
 
     List<TableModel> findByEstablishmentId(UUID establishmentId);
 
-    Optional<TableModel> findFirstByCardIsNull();
+    Optional<TableModel> findByIdAndEstablishmentId(
+            UUID id,
+            UUID establishmentId
+    );
+
+    boolean existsByNumberAndEstablishmentId(
+            Integer number,
+            UUID establishmentId
+    );
+
+    boolean existsByNumberAndEstablishmentIdAndIdNot(
+            Integer number,
+            UUID establishmentId,
+            UUID id
+    );
+
+    boolean existsByCard_Id(UUID cardId);
+
+    boolean existsByCard_IdAndIdNot(UUID cardId, UUID tableId);
+
+    Optional<TableModel> findByNumberAndEstablishmentId(
+            Integer number,
+            UUID establishmentId
+    );
 }
