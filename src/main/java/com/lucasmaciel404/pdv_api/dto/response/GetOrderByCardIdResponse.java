@@ -1,10 +1,7 @@
 package com.lucasmaciel404.pdv_api.dto.response;
 
-import com.lucasmaciel404.pdv_api.model.OrderItemsModel;
-import com.lucasmaciel404.pdv_api.model.OrderModel;
-import com.lucasmaciel404.pdv_api.model.TableModel;
-
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record GetOrderByCardIdResponse(
@@ -12,5 +9,10 @@ public record GetOrderByCardIdResponse(
         String status,
         Integer tableNumber,
         List<OrderItemResponse> items,
-        BigDecimal totalValue
-) { }
+        BigDecimal subtotalAmount,
+        BigDecimal serviceFeePercentage,
+        BigDecimal serviceFeeAmount,
+        BigDecimal totalAmount,
+        LocalDateTime createdAt,
+        LocalDateTime closedAt
+) {}

@@ -23,11 +23,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.math.RoundingMode;
 import java.util.UUID;
 
 @Service
@@ -42,13 +44,16 @@ public class OrderService {
 
     public GetOrderByCardIdResponse getOrderByCardId(String cardId) {
         CardModel card = cardRepository.findByCardCode(cardId)
-                .orElseThrow(() -> new EntityNotFoundException("Card not found"));
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Card not found")
+                );
 
-        TableModel table = tableRepository.findByCard_Id(card.getId());
-
-        if (table == null) {
-            throw new EntityNotFoundException("Card not linked to any table.");
-        }
+        TableModel table = tableRepository.findByCard_Id(card.getId())
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Card not linked to any table."
+                        )
+                );
 
         OrderModel order = orderRepository.findByTable_IdAndStatus(
                 table.getId(),
@@ -56,7 +61,9 @@ public class OrderService {
         );
 
         if (order == null) {
-            throw new EntityNotFoundException("Order not linked to any table.");
+            throw new EntityNotFoundException(
+                    "Order not linked to any table."
+            );
         }
 
         List<OrderItemsModel> items =
@@ -66,16 +73,31 @@ public class OrderService {
                 .map(OrderItemMapper::toResponse)
                 .toList();
 
-        BigDecimal totalValue = itemResponses.stream()
-                .map(OrderItemResponse::price)
+        BigDecimal subtotalAmount = items.stream()
+                .map(item -> item.getUnitPrice()
+                        .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal serviceFeePercentage = order.getEstablishment()
+                .getDefaultServiceFeePercentage();
+
+        BigDecimal serviceFeeAmount = subtotalAmount
+                .multiply(serviceFeePercentage)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+        BigDecimal totalAmount = subtotalAmount.add(serviceFeeAmount);
 
         return new GetOrderByCardIdResponse(
                 order.getId().toString(),
                 order.getStatus().name(),
                 table.getNumber(),
                 itemResponses,
-                totalValue
+                subtotalAmount,
+                serviceFeePercentage,
+                serviceFeeAmount,
+                totalAmount,
+                order.getCreatedAt(),
+                order.getClosedAt()
         );
     }
 
@@ -133,9 +155,11 @@ public class OrderService {
                         new EntityNotFoundException("Table not found."));
 
         // Verifica se o cartão já está vinculado a outra mesa
-        TableModel linkedTable = tableRepository.findByCard_Id(card.getId());
+        Optional<TableModel> linkedTable =
+                tableRepository.findByCard_Id(card.getId());
 
-        if (linkedTable != null && !linkedTable.getId().equals(tableId)) {
+        if (linkedTable.isPresent()
+                && !linkedTable.get().getId().equals(tableId)) {
             throw new IllegalStateException(
                     "Card is already linked to another table."
             );
@@ -230,51 +254,104 @@ public class OrderService {
 
         orderItemsRepository.saveAll(orderItems);
 
+        recalculateSubtotal(order);
+
         return order;
     }
 
+
     @Transactional
     public void closeByOrderId(UUID orderId) {
-        System.out.println(" AAAAAAAAAAAAAAAAAAAAAA:>>>>> "+orderId);
         OrderModel order = orderRepository.findById(orderId)
                 .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Order not found: " + orderId
-                        )
-                );
-
+                        new EntityNotFoundException("Order not found: " + orderId));
 
         if (order.getStatus() != OrderStatusEnum.OPEN) {
-            throw new IllegalStateException(
-                    "Order is not open: " + orderId
-            );
+            throw new IllegalStateException("Order is not open: " + orderId);
         }
 
         TableModel table = tableRepository.findById(order.getTable().getId())
                 .orElseThrow(() ->
                         new EntityNotFoundException(
-                                "Table not found: " + order.getTable().getId()
-                        )
-                );
+                                "Table not found: " + order.getTable().getId()));
 
-        // Remove o cartão NFC associado à mesa
-        table.setCard(null);
+        // Calcula o subtotal usando os preços registrados nos itens.
+        BigDecimal subtotal = orderItemsRepository
+                .findAllByOrder_Id(order.getId())
+                .stream()
+                .map(item -> item.getUnitPrice()
+                        .multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
 
-        // Libera a mesa
-        table.setStatus(TableStatusEnum.OPEN);
+        // Obtém a taxa configurada para o estabelecimento.
+        BigDecimal percentage = order.getEstablishment()
+                .getDefaultServiceFeePercentage();
 
-        tableRepository.save(table);
-
-        // Fecha o pedido
-        order.setStatus(OrderStatusEnum.CLOSED);
-        orderRepository.save(order);
-    }
-
-    public void deleteItemById(UUID itemId) {
-        if (!orderItemsRepository.existsById(itemId)) {
-            throw new EntityNotFoundException("Order item not found");
+        if (percentage == null) {
+            percentage = BigDecimal.ZERO;
         }
 
-        orderItemsRepository.deleteById(itemId);
+        if (percentage.compareTo(BigDecimal.ZERO) < 0
+                || percentage.compareTo(new BigDecimal("100")) > 0) {
+            throw new IllegalStateException(
+                    "Service fee percentage must be between 0 and 100.");
+        }
+
+        // Calcula a taxa e o total final.
+        BigDecimal serviceFee = subtotal
+                .multiply(percentage)
+                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+
+        BigDecimal total = subtotal.add(serviceFee)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        // Salva os valores financeiros do pedido.
+        order.setSubtotalAmount(subtotal);
+        order.setServiceFeePercentage(percentage);
+        order.setServiceFeeAmount(serviceFee);
+        order.setTotalAmount(total);
+        order.setClosedAt(LocalDateTime.now());
+        order.setStatus(OrderStatusEnum.CLOSED);
+
+        orderRepository.save(order);
+
+        // Libera o cartão NFC e a mesa.
+        table.setCard(null);
+        table.setStatus(TableStatusEnum.OPEN);
+        tableRepository.save(table);
+    }
+
+
+    @Transactional
+    public void deleteItemById(UUID itemId) {
+        OrderItemsModel item = orderItemsRepository.findById(itemId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Order item not found"));
+
+        OrderModel order = item.getOrder();
+
+        if (order.getStatus() != OrderStatusEnum.OPEN) {
+            throw new IllegalStateException(
+                    "Cannot delete items from a closed order.");
+        }
+
+        orderItemsRepository.delete(item);
+
+        recalculateSubtotal(order);
+    }
+
+
+    private void recalculateSubtotal(OrderModel order) {
+        BigDecimal subtotal = orderItemsRepository
+                .findAllByOrder_Id(order.getId())
+                .stream()
+                .map(item -> item.getUnitPrice()
+                        .multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        order.setSubtotalAmount(subtotal);
+        orderRepository.save(order);
     }
 }
