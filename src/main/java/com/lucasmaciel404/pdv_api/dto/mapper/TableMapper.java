@@ -1,4 +1,3 @@
-le
 package com.lucasmaciel404.pdv_api.dto.mapper;
 
 import com.lucasmaciel404.pdv_api.dto.response.TableResponse;
