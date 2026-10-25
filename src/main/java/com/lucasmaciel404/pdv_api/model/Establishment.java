@@ -1,3 +1,4 @@
+
 package com.lucasmaciel404.pdv_api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -6,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,14 @@ public class Establishment {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(
+            name = "default_service_fee_percentage",
+            nullable = false,
+            precision = 5,
+            scale = 2
+    )
+    private BigDecimal defaultServiceFeePercentage = BigDecimal.ZERO;
+
     @OneToMany(mappedBy = "establishment")
     @JsonIgnore
     private List<ProductModel> products;
@@ -52,7 +61,16 @@ public class Establishment {
 
     @PrePersist
     void onCreate() {
-        if (active == null) active = true;
-        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (active == null) {
+            active = true;
+        }
+
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+
+        if (defaultServiceFeePercentage == null) {
+            defaultServiceFeePercentage = BigDecimal.ZERO;
+        }
     }
 }
