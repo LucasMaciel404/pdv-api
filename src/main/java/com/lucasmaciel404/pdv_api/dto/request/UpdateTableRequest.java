@@ -1,4 +1,3 @@
-r
 package com.lucasmaciel404.pdv_api.dto.request;
 
 import jakarta.validation.constraints.Min;
